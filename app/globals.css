@@ -1,0 +1,697 @@
+:root {
+  --bg: #070318;
+  --cream: #f4f1ea;
+  --muted: #b9b1c4;
+  --gold: #f5c16c;
+  --gold-deep: #cc8a2e;
+  --violet: #8a6bd8;
+  --font: 'Helvetica Neue', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+/* NOTE: never give html/body height:100% here — the page is scroll-driven by
+   .scroll-spacer (760vh). With overflow-x:hidden flipping overflow-y to auto,
+   a fixed 100% height turns <body> into its own scroll box and traps the
+   spacer's overflow, so the document can't scroll (Lenis sees limit 0). */
+html, body { width: 100%; max-width: 100%; }
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+body {
+  background: var(--bg);
+  color: var(--cream);
+  font-family: var(--font);
+  overflow-x: hidden;
+  cursor: default;
+}
+a { color: inherit; text-decoration: none; }
+::selection { background: rgba(245, 193, 108, 0.3); }
+
+/* ---------------- WebGL canvas ---------------- */
+.canvas-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+.scroll-spacer {
+  position: relative;
+  width: 100%;
+  height: 760vh;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ---------------- readable text scrim ---------------- */
+/* sits inside .overlay, beneath its text layers, so it darkens the particle
+   field/core behind the copy without dimming the headlines themselves */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 72% 60% at 50% 52%,
+    rgba(7, 3, 24, 0.74) 0%,
+    rgba(7, 3, 24, 0.5) 30%,
+    rgba(7, 3, 24, 0.16) 55%,
+    rgba(7, 3, 24, 0) 72%);
+}
+
+/* ---------------- film overlays ---------------- */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 44%, rgba(0, 0, 0, 0.66) 100%);
+}
+
+/* ---------------- overlay / narrative ---------------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.beat {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(92vw, 720px);
+  text-align: center;
+  opacity: 0;
+  z-index: 2;
+  isolation: isolate;
+  will-change: opacity, transform, filter;
+}
+/* soft dark bed travelling with each beat so copy clears the core glow */
+.beat::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 155%;
+  height: 230%;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 62% 55% at 50% 50%,
+    rgba(7, 3, 24, 0.84) 0%,
+    rgba(7, 3, 24, 0.6) 46%,
+    rgba(7, 3, 24, 0) 78%);
+}
+/* the core beat frames the AI orb + proof card: headline pinned to the top,
+   the supporting line dropped to the foot, leaving the middle clear for the
+   glowing orb and the chat card that floats on it */
+.beat.core {
+  height: 74vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+.beat.core::before { display: none; }
+.beat-head { width: 100%; }
+/* the core's supporting line sits low, outside the central scrim, so give it
+   its own dark bed and a touch more weight to keep it crisp over the field */
+.beat.core p {
+  position: relative;
+  font-weight: 400;
+  color: #f1edf7;
+  max-width: 600px;
+}
+.beat.core p::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 150%;
+  height: 320%;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 60% 50% at 50% 50%,
+    rgba(7, 3, 24, 0.82) 0%,
+    rgba(7, 3, 24, 0.5) 50%,
+    rgba(7, 3, 24, 0) 78%);
+}
+
+.beat .kicker {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.52em;
+  text-transform: uppercase;
+  color: #ffd98a;
+  margin-bottom: 22px;
+  padding-left: 0.52em;
+  /* lift the small caps off the dark particle field so they read crisply */
+  text-shadow: 0 0 1px rgba(255, 217, 138, 0.7), 0 1px 10px rgba(7, 3, 24, 0.9),
+    0 0 18px rgba(245, 193, 108, 0.4);
+}
+.beat h2 {
+  font-size: clamp(32px, 5.8vw, 78px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  /* heavier glyphs cover more of the dark field, and a tight luminous halo
+     lifts the white words so they read bright-white, never gray */
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.6), 0 0 18px rgba(193, 162, 255, 0.28);
+}
+.beat h2 b {
+  font-weight: 700;
+  color: var(--gold);
+}
+.beat p {
+  margin-top: 24px;
+  font-size: clamp(14px, 1.4vw, 17px);
+  font-weight: 300;
+  line-height: 1.65;
+  color: #e7e2f0;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+  /* tight dense halo so glyphs separate from the bright orbital particles */
+  text-shadow: 0 1px 2px rgba(7, 3, 24, 0.95), 0 0 12px rgba(7, 3, 24, 0.92),
+    0 2px 22px rgba(7, 3, 24, 0.8);
+}
+
+/* CTA */
+.cta {
+  pointer-events: auto;
+  margin-top: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 30px;
+  border-radius: 100px;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #1a1208;
+  background: linear-gradient(135deg, #ffe6b0, var(--gold) 45%, var(--gold-deep));
+  box-shadow: 0 10px 40px rgba(245, 193, 108, 0.28), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s;
+}
+.cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 60px rgba(245, 193, 108, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
+.cta svg { transition: transform 0.4s; }
+.cta:hover svg { transform: translateX(4px); }
+
+/* ---------------- chat bubbles (shared by the .chatflow exchange) ---------------- */
+@keyframes chSwap {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: none; }
+}
+.bub {
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 10px 13px;
+  border-radius: 15px;
+  max-width: 86%;
+}
+.bub.in {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.07);
+  color: #ded8e8;
+  border-bottom-left-radius: 5px;
+}
+.ch-out {
+  display: grid;
+  align-self: flex-end;
+  max-width: 86%;
+  margin-left: auto;
+}
+/* typing dots and the reply share one cell so the box never jumps; the dots
+   sit centred in the reserved reply space instead of orphaned at the top */
+.ch-out > .bub.out { grid-area: 1 / 1; }
+.bub.out {
+  display: block;
+  background: linear-gradient(135deg, rgba(255, 224, 169, 0.95), var(--gold) 55%, rgba(204, 138, 46, 0.95));
+  color: #20160a;
+  font-weight: 450;
+  border-bottom-right-radius: 5px;
+  opacity: 0;
+  transform: translateY(9px);
+  animation: chReply 7.5s ease-in-out infinite;
+}
+.ch-typing {
+  grid-area: 1 / 1;
+  align-self: center;
+  justify-self: end;
+  display: flex;
+  gap: 5px;
+  padding: 13px 15px;
+  border-radius: 15px;
+  border-bottom-right-radius: 5px;
+  background: rgba(255, 255, 255, 0.07);
+  animation: chType 7.5s ease-in-out infinite;
+}
+.ch-typing i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #b9b1c4;
+  animation: chDot 1.2s ease-in-out infinite;
+}
+.ch-typing i:nth-child(2) { animation-delay: 0.15s; }
+.ch-typing i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes chDot {
+  0%, 100% { opacity: 0.3; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-3px); }
+}
+@keyframes chType {
+  0% { opacity: 0; }
+  5% { opacity: 1; }
+  20% { opacity: 1; }
+  26% { opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes chReply {
+  0%, 24% { opacity: 0; transform: translateY(9px); }
+  32% { opacity: 1; transform: none; }
+  92% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translateY(9px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bub.out, .flow-a .bub.out { opacity: 1; transform: none; animation: none; }
+  .ch-typing, .flow-a .ch-typing { display: none; }
+}
+
+/* ---------------- hero: incoming enquiries dissolving into the cosmos ----------------
+   live multilingual buyer enquiries pop in around the headline, hold, then
+   disintegrate into a spray of small gold dots (the <canvas>) that stream inward
+   to feed the particle field — "incoming leads -> the AI's cosmos", made literal. */
+.herofx {
+  position: fixed;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+  will-change: opacity;
+}
+.hero-bub {
+  position: absolute;
+  width: max-content;
+  max-width: 248px;
+  padding: 11px 14px;
+  border-radius: 16px;
+  border-bottom-left-radius: 5px;
+  background: rgba(255, 255, 255, 0.075);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.42), inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+  color: #e7e2f0;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: left;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.82);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), filter 0.45s ease;
+}
+.hero-bub .htag {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 5px;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.85;
+}
+.hero-bub .htag svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  display: block;
+}
+.hero-bub.in {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+/* disintegration: bubble blurs + lifts away while the canvas dots take over */
+.hero-bub.out {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(1.06);
+  filter: blur(7px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-bub { transition: opacity 0.3s ease; }
+  .hero-bub.out { filter: none; transform: translate(-50%, -50%) scale(1); }
+}
+@media (max-width: 720px) {
+  .hero-bub { max-width: 62vw; font-size: 12px; padding: 9px 12px; }
+}
+
+/* ---------------- human vs. machine: frailty lines that shatter away ----------------
+   a centred column of human limitations, dim and lifeless, sitting above the
+   headline. As the visitor scrolls the beat each line disintegrates (blur + lift)
+   while components/HumanLimits.tsx fires real WebGL particles from its position. */
+.limitsfx {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 6;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  max-width: 92vw;
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  will-change: opacity;
+}
+/* gold subject line that anchors the frailties below it */
+.limit-lead {
+  font-size: clamp(11px, 1.05vw, 13px);
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: #f3c578;
+  margin-bottom: 6px;
+  text-shadow: 0 1px 12px rgba(7, 3, 24, 0.7);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), filter 0.55s ease;
+}
+.limit-lead.gone {
+  opacity: 0;
+  transform: scale(1.09);
+  filter: blur(8px);
+}
+.limit-word {
+  font-size: clamp(22px, 3.3vw, 36px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  /* a cool, clear white — legible over the orb/field, but kept cooler than the
+     warm-gold AI copy so humans still read as the "lifeless" side of the beat */
+  color: rgba(236, 233, 244, 0.95);
+  text-shadow: 0 2px 20px rgba(7, 3, 24, 0.78), 0 0 2px rgba(7, 3, 24, 0.5);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), filter 0.55s ease;
+}
+.limit-word.gone {
+  opacity: 0;
+  transform: scale(1.09);
+  filter: blur(8px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .limit-word, .limit-lead { transition: opacity 0.3s ease; }
+  .limit-word.gone, .limit-lead.gone { filter: none; transform: none; }
+}
+@media (max-width: 720px) {
+  .limitsfx { gap: 9px; }
+  .limit-word { font-size: 20px; }
+}
+
+/* the outcome beat's proof line: always-on numbers, set as luxe inline text — no
+   boxes, no grid, just gold figures with quiet labels separated by hairlines */
+.outcome-stats {
+  margin-top: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 9px 20px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #b9b1c4;
+}
+.outcome-stats span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+}
+.outcome-stats span + span {
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+  padding-left: 20px;
+}
+.outcome-stats b {
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  text-shadow: 0 0 14px rgba(245, 193, 108, 0.35);
+}
+@media (max-width: 720px) {
+  .outcome-stats { gap: 8px 14px; font-size: 10px; }
+  .outcome-stats span + span { border-left: none; padding-left: 0; }
+}
+
+/* ---------------- chat flow: a single exchange rising out of the AI core ----------------
+   stacked vertically and centred so it reads in clean order beneath the orb and
+   never clips on narrow viewports: buyer enquiry (glass, left) then the AI's
+   gold reply (right) with its caption. */
+.chatflow {
+  position: fixed;
+  left: 50%;
+  top: 59%;
+  transform: translate(-50%, -50%);
+  width: min(90vw, 430px);
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  z-index: 9;
+  opacity: 0;
+  pointer-events: none;
+}
+.flow-q {
+  align-self: stretch;
+  animation: chSwap 0.6s ease both;
+}
+.flow-a {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: left;
+}
+.flow-tag {
+  display: block;
+  margin: 0 0 7px 4px;
+  font-size: 9.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #9b93a8;
+}
+.flow-q .bub.in {
+  display: inline-block;
+  max-width: 90%;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+}
+.flow-a .ch-out { max-width: 90%; }
+.flow-a .bub.out { box-shadow: 0 16px 44px rgba(245, 193, 108, 0.34); }
+.flow-cap {
+  margin-top: 13px;
+  max-width: 100%;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  line-height: 1.5;
+  text-transform: uppercase;
+  text-align: right;
+  color: var(--gold);
+  opacity: 0.92;
+}
+
+/* ---------------- HUD ---------------- */
+.hud {
+  position: fixed;
+  z-index: 11;
+  pointer-events: none;
+  color: #cfc8d8;
+}
+
+/* brand lockup: chevron mark + wordmark */
+.hud.brand {
+  top: 30px;
+  left: 40px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+.hud.brand .logo {
+  flex: none;
+  filter: drop-shadow(0 0 12px rgba(245, 193, 108, 0.32));
+}
+.hud.brand .brand-txt {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.hud.brand .brand-txt small {
+  display: block;
+  margin-top: 7px;
+  font-size: 8.5px;
+  font-weight: 400;
+  letter-spacing: 0.28em;
+  opacity: 0.5;
+}
+
+.hud.progress {
+  top: 50%;
+  right: 38px;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.hud.progress .idx {
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+}
+.hud.progress .of {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  opacity: 0.45;
+}
+.hud.progress .track {
+  width: 1px;
+  height: 160px;
+  background: rgba(255, 255, 255, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+.hud.progress .fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: top;
+  transform: scaleY(0);
+  background: linear-gradient(var(--gold), var(--gold-deep));
+}
+
+.hud.scroll-hint {
+  bottom: 34px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: #8e87a0;
+}
+.hud.scroll-hint i {
+  width: 1px;
+  height: 42px;
+  background: linear-gradient(var(--gold), transparent);
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+@keyframes scrollPulse {
+  0%, 100% { transform: scaleY(0.3); opacity: 0.4; transform-origin: top; }
+  50% { transform: scaleY(1); opacity: 1; transform-origin: top; }
+}
+
+/* ---------------- preloader ---------------- */
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: radial-gradient(ellipse at center, #0c0626, #050211 75%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  transition: opacity 1s ease, visibility 1s;
+}
+.preloader.out {
+  opacity: 0;
+  visibility: hidden;
+}
+/* chevron mark intro */
+.pl-mark {
+  display: flex;
+  filter: drop-shadow(0 0 22px rgba(245, 193, 108, 0.4));
+  opacity: 0;
+  transform: scale(0.86) translateY(8px);
+  animation: plPop 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.pl-word {
+  font-size: 13px;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--cream);
+  opacity: 0;
+  animation: plFade 1s 0.6s forwards;
+}
+.pl-sub {
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: #6f6a82;
+  opacity: 0;
+  animation: plFade 1s 0.9s forwards;
+}
+.pl-bar {
+  margin-top: 14px;
+  width: 180px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.pl-bar i {
+  display: block;
+  height: 100%;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  animation: plLoad 1.4s ease-in-out infinite;
+}
+@keyframes plPop { to { opacity: 1; transform: none; } }
+@keyframes plFade { to { opacity: 1; } }
+@keyframes plLoad {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(360%); }
+}
+
+/* ---------------- responsive ---------------- */
+@media (max-width: 720px) {
+  .hud.brand { left: 22px; top: 22px; }
+  /* the vertical 01/06 rail collides with the centred 90vw copy on phones */
+  .hud.progress { display: none; }
+
+  .beat { width: 90vw; }
+  .beat h2 { font-size: clamp(25px, 7.4vw, 40px); }
+  .beat p { font-size: 14px; }
+  .beat.core { height: 80vh; }
+  .beat.core p { max-width: 90vw; }
+
+  /* keep the whole conversation inside the screen and let the caption wrap */
+  .chatflow { width: 90vw; top: 58%; }
+  .flow-q .bub.in,
+  .flow-a .ch-out,
+  .flow-a .bub.out { max-width: 100%; }
+  .bub { font-size: 12.5px; }
+  .flow-cap { letter-spacing: 0.12em; font-size: 9px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud.scroll-hint i { animation: none; }
+}
