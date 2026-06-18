@@ -80,5 +80,10 @@ export const SCENES: Scene[] = [
 
 export const BRAND = {
   name: 'Logic Loving Mind',
-  cta: 'Book a demo',
+  cta: 'Chat on WhatsApp',
+  // WhatsApp business number, country code first, digits only (no + or spaces).
+  // TODO: replace with the real number before launch.
+  waNumber: '910000000000',
+  waMessage:
+    'Hi Logic Loving Mind, I want to automate my real-estate lead capture.',
 };

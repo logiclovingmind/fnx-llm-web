@@ -10,7 +10,7 @@ export default function Experience() {
   const setReady = useExperience((s) => s.setReady);
 
   useEffect(() => {
-    const t = setTimeout(() => setReady(true), 600);
+    const t = setTimeout(() => setReady(true), 3200);
     return () => clearTimeout(t);
   }, [setReady]);
 

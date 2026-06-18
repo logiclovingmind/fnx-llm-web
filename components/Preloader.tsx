@@ -19,9 +19,10 @@ export default function Preloader() {
 
   return (
     <div className={`preloader ${ready ? 'out' : ''}`} ref={root}>
-      {/* real chevron mark instead of the "L L M" letters */}
+      {/* real chevron mark — rings ignite outer -> gold core (inward reveal) */}
       <div className="pl-mark">
-        <Logo size={64} />
+        <span className="pl-glow" />
+        <Logo size={64} ringClass="plr" />
       </div>
       <div className="pl-word">Logic Loving Mind</div>
       <div className="pl-sub">Building your intelligence</div>

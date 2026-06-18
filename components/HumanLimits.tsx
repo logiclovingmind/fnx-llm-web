@@ -12,7 +12,7 @@ import { emitFlood } from '@/lib/ingest';
 // A small gold lead anchors the subject so the frailties aren't an orphaned
 // "they" — it reads as one sentence: "Even your best agent … sleeps, eats,
 // forgets …" which the next beat answers with "Your AI does none of that."
-const LEAD = 'Even your best agent';
+const LEAD = 'Even your best team';
 const LIMITS = [
   'Sleeps.',
   'Eats.',

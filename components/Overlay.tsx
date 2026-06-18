@@ -181,7 +181,9 @@ export default function Overlay() {
           {s.id === 'skyline' && (
             <a
               className="cta"
-              href="mailto:logiclovingmind@gmail.com?subject=Automation%20Strategy%20Call"
+              href={`https://wa.me/${BRAND.waNumber}?text=${encodeURIComponent(BRAND.waMessage)}`}
+              target="_blank"
+              rel="noopener noreferrer"
             >
               {BRAND.cta}
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
