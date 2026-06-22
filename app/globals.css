@@ -1275,13 +1275,9 @@ section { position: relative; }
 }
 .reveal.in { opacity: 1; transform: none; }
 
-@media (prefers-reduced-motion: reduce) {
-  .reveal { opacity: 1; transform: none; transition: none; }
-  .pop, .typing i, .chat-top .stat i, .btn-label,
-  .accent--slow, .accent--auto, .accent--engine,
-  .lead-orb::after, .lead-orb img { animation: none; }
-  html { scroll-behavior: auto; }
-}
+/* brand motion is intentionally always on — the accent gradient sweeps, button
+   shimmer and lead orb are core to the feel, so we don't gate them on the OS
+   reduce-motion setting. */
 
 /* ---------------- desktop / mobile experience toggle ---------------- */
 /* both trees render server-side; CSS decides which is shown, so there is no
