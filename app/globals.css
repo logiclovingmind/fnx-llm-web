@@ -1286,17 +1286,6 @@ section { position: relative; }
 @media (max-width: 900px) {
   .view-desktop { display: none; }
   .view-mobile { display: block; }
-
-  /* MOBILE RHYTHM: each automation stage settles to centre-screen as you scroll,
-     so every beat (sheet → calendar → dashboard) gets its own cinematic moment
-     instead of a cramped stack. `proximity` (not mandatory) only nudges when you
-     come to rest near a stage — it never traps the scroll, so the page still
-     flows free through the hero, stats and CTA. */
-  html { scroll-snap-type: y proximity; }
-  .view-mobile .stage {
-    scroll-snap-align: center;
-    scroll-margin-block: 24px;
-  }
 }
 
 /* ---------------- responsive ---------------- */
