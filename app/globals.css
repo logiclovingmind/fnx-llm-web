@@ -1,746 +1,1441 @@
+/* ============================================================
+   Logic Loving Mind — light & airy editorial minimalism
+   ============================================================ */
+
 :root {
-  --bg: #070318;
-  --cream: #f4f1ea;
-  --muted: #b9b1c4;
-  --gold: #f5c16c;
-  --gold-deep: #cc8a2e;
-  --violet: #8a6bd8;
-  --font: 'Helvetica Neue', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  --bg: #fbfaf8;
+  --surface: #ffffff;
+  --ink: #17141d;
+  --muted: #6b6675;
+  --line: #ece8e2;
+  --accent: #7a3df0;
+  --accent-2: #e08a16;
+  --grad: linear-gradient(95deg, #7a3df0 0%, #b5511f 55%, #e08a16 100%);
+  --green: #25b667;
+  --bubble-in: #f1eef2;
+  --bubble-out: #efe7ff;
+  --btn-bg: #17141d;
+  --btn-fg: #ffffff;
+  --shadow-sm: 0 1px 2px rgba(23, 20, 29, 0.04), 0 4px 16px rgba(23, 20, 29, 0.05);
+  --shadow-lg: 0 12px 40px rgba(60, 40, 110, 0.1), 0 2px 8px rgba(23, 20, 29, 0.05);
+  --r: 18px;
+  --maxw: 1180px;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-/* NOTE: never give html/body height:100% here — the page is scroll-driven by
-   .scroll-spacer (760vh). With overflow-x:hidden flipping overflow-y to auto,
-   a fixed 100% height turns <body> into its own scroll box and traps the
-   spacer's overflow, so the document can't scroll (Lenis sees limit 0). */
-html, body { width: 100%; max-width: 100%; }
+/* ---------------- dark theme ---------------- */
+[data-theme='dark'] {
+  --bg: #0b0814;
+  --surface: #14101e;
+  --ink: #f4f1f8;
+  --muted: #9a93a8;
+  --line: #251f31;
+  --accent: #9a5cff;
+  --accent-2: #f0a83a;
+  --green: #2fd07a;
+  --bubble-in: #211b2e;
+  --bubble-out: #2a1d47;
+  --btn-bg: #f4f1f8;
+  --btn-fg: #0b0814;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 22px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 16px 50px rgba(122, 61, 240, 0.22), 0 2px 10px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
+}
+/* faint cinematic top-glow only in dark */
+[data-theme='dark'] body {
+  background:
+    radial-gradient(1100px 520px at 78% -8%, rgba(122, 61, 240, 0.12), transparent 60%),
+    radial-gradient(900px 480px at 0% 8%, rgba(224, 138, 22, 0.06), transparent 55%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+/* no default browser focus ring on tap; keyboard users still get a clean ring */
+:focus:not(:focus-visible) { outline: none; }
+:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent); outline-offset: 3px; }
+
+/* readable by screen readers and search engines, invisible on screen */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  /* light: a barely-there purple/gold mesh so the airy space has depth */
+  background:
+    radial-gradient(1000px 540px at 86% -8%, rgba(122, 61, 240, 0.1), transparent 62%),
+    radial-gradient(900px 500px at -8% 8%, rgba(224, 138, 22, 0.08), transparent 58%),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-size: 17px;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  overflow-x: hidden;
-}
-body {
-  background: var(--bg);
-  color: var(--cream);
-  font-family: var(--font);
-  overflow-x: hidden;
-  cursor: default;
-}
-a { color: inherit; text-decoration: none; }
-::selection { background: rgba(245, 193, 108, 0.3); }
-
-/* ---------------- WebGL canvas ---------------- */
-.canvas-shell {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-}
-.scroll-spacer {
-  position: relative;
-  width: 100%;
-  height: 760vh;
-  pointer-events: none;
-  z-index: 1;
 }
 
-/* ---------------- readable text scrim ---------------- */
-/* sits inside .overlay, beneath its text layers, so it darkens the particle
-   field/core behind the copy without dimming the headlines themselves */
-.scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: radial-gradient(ellipse 72% 60% at 50% 52%,
-    rgba(7, 3, 24, 0.74) 0%,
-    rgba(7, 3, 24, 0.5) 30%,
-    rgba(7, 3, 24, 0.16) 55%,
-    rgba(7, 3, 24, 0) 72%);
-}
-
-/* ---------------- film overlays ---------------- */
-.grain {
-  position: fixed;
-  inset: 0;
-  z-index: 6;
-  pointer-events: none;
-  opacity: 0.045;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-.vignette {
-  position: fixed;
-  inset: 0;
-  z-index: 5;
-  pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 44%, rgba(0, 0, 0, 0.66) 100%);
-}
-
-/* ---------------- overlay / narrative ---------------- */
-.overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 10;
-  pointer-events: none;
-}
-
-.beat {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: min(92vw, 720px);
-  text-align: center;
-  opacity: 0;
-  z-index: 2;
-  isolation: isolate;
-  will-change: opacity, transform, filter;
-}
-/* soft dark bed travelling with each beat so copy clears the core glow */
-.beat::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 155%;
-  height: 230%;
-  transform: translate(-50%, -50%);
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(ellipse 62% 55% at 50% 50%,
-    rgba(7, 3, 24, 0.84) 0%,
-    rgba(7, 3, 24, 0.6) 46%,
-    rgba(7, 3, 24, 0) 78%);
-}
-/* the core beat frames the AI orb + proof card: headline pinned to the top,
-   the supporting line dropped to the foot, leaving the middle clear for the
-   glowing orb and the chat card that floats on it */
-.beat.core {
-  height: 74vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-}
-.beat.core::before { display: none; }
-.beat-head { width: 100%; }
-/* the core's supporting line sits low, outside the central scrim, so give it
-   its own dark bed and a touch more weight to keep it crisp over the field */
-.beat.core p {
-  position: relative;
-  font-weight: 400;
-  color: #f1edf7;
-  max-width: 600px;
-}
-.beat.core p::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 150%;
-  height: 320%;
-  transform: translate(-50%, -50%);
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(ellipse 60% 50% at 50% 50%,
-    rgba(7, 3, 24, 0.82) 0%,
-    rgba(7, 3, 24, 0.5) 50%,
-    rgba(7, 3, 24, 0) 78%);
-}
-
-.beat .kicker {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.52em;
-  text-transform: uppercase;
-  color: #ffd98a;
-  margin-bottom: 22px;
-  padding-left: 0.52em;
-  /* lift the small caps off the dark particle field so they read crisply */
-  text-shadow: 0 0 1px rgba(255, 217, 138, 0.7), 0 1px 10px rgba(7, 3, 24, 0.9),
-    0 0 18px rgba(245, 193, 108, 0.4);
-}
-.beat h2 {
-  font-size: clamp(32px, 5.8vw, 78px);
-  font-weight: 700;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  color: #ffffff;
-  /* heavier glyphs cover more of the dark field, and a tight luminous halo
-     lifts the white words so they read bright-white, never gray */
-  text-shadow: 0 0 1px rgba(255, 255, 255, 0.6), 0 0 18px rgba(193, 162, 255, 0.28);
-}
-.beat h2 b {
-  font-weight: 700;
-  color: var(--gold);
-}
-.beat p {
-  margin-top: 24px;
-  font-size: clamp(14px, 1.4vw, 17px);
-  font-weight: 300;
-  line-height: 1.65;
-  color: #e7e2f0;
-  max-width: 560px;
-  margin-left: auto;
-  margin-right: auto;
-  /* tight dense halo so glyphs separate from the bright orbital particles */
-  text-shadow: 0 1px 2px rgba(7, 3, 24, 0.95), 0 0 12px rgba(7, 3, 24, 0.92),
-    0 2px 22px rgba(7, 3, 24, 0.8);
-}
-
-/* CTA */
-.cta {
-  pointer-events: auto;
-  margin-top: 38px;
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 30px;
-  border-radius: 100px;
-  font-size: 13px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #1a1208;
-  background: linear-gradient(135deg, #ffe6b0, var(--gold) 45%, var(--gold-deep));
-  box-shadow: 0 10px 40px rgba(245, 193, 108, 0.28), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s;
-}
-.cta:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 18px 60px rgba(245, 193, 108, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.55);
-}
-.cta svg { transition: transform 0.4s; }
-.cta:hover svg { transform: translateX(4px); }
-
-/* ---------------- chat bubbles (shared by the .chatflow exchange) ---------------- */
-@keyframes chSwap {
-  from { opacity: 0; transform: translateY(7px); }
-  to { opacity: 1; transform: none; }
-}
-.bub {
-  font-size: 13px;
-  line-height: 1.5;
-  padding: 10px 13px;
-  border-radius: 15px;
-  max-width: 86%;
-}
-.bub.in {
-  align-self: flex-start;
-  background: rgba(255, 255, 255, 0.07);
-  color: #ded8e8;
-  border-bottom-left-radius: 5px;
-}
-.ch-out {
-  display: grid;
-  align-self: flex-end;
-  max-width: 86%;
-  margin-left: auto;
-}
-/* typing dots and the reply share one cell so the box never jumps; the dots
-   sit centred in the reserved reply space instead of orphaned at the top */
-.ch-out > .bub.out { grid-area: 1 / 1; }
-.bub.out {
-  display: block;
-  background: linear-gradient(135deg, rgba(255, 224, 169, 0.95), var(--gold) 55%, rgba(204, 138, 46, 0.95));
-  color: #20160a;
-  font-weight: 450;
-  border-bottom-right-radius: 5px;
-  opacity: 0;
-  transform: translateY(9px);
-  animation: chReply 7.5s ease-in-out infinite;
-}
-.ch-typing {
-  grid-area: 1 / 1;
-  align-self: center;
-  justify-self: end;
-  display: flex;
-  gap: 5px;
-  padding: 13px 15px;
-  border-radius: 15px;
-  border-bottom-right-radius: 5px;
-  background: rgba(255, 255, 255, 0.07);
-  animation: chType 7.5s ease-in-out infinite;
-}
-.ch-typing i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #b9b1c4;
-  animation: chDot 1.2s ease-in-out infinite;
-}
-.ch-typing i:nth-child(2) { animation-delay: 0.15s; }
-.ch-typing i:nth-child(3) { animation-delay: 0.3s; }
-@keyframes chDot {
-  0%, 100% { opacity: 0.3; transform: translateY(0); }
-  50% { opacity: 1; transform: translateY(-3px); }
-}
-@keyframes chType {
-  0% { opacity: 0; }
-  5% { opacity: 1; }
-  20% { opacity: 1; }
-  26% { opacity: 0; }
-  100% { opacity: 0; }
-}
-@keyframes chReply {
-  0%, 24% { opacity: 0; transform: translateY(9px); }
-  32% { opacity: 1; transform: none; }
-  92% { opacity: 1; transform: none; }
-  100% { opacity: 0; transform: translateY(9px); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .bub.out, .flow-a .bub.out { opacity: 1; transform: none; animation: none; }
-  .ch-typing, .flow-a .ch-typing { display: none; }
-}
-
-/* ---------------- hero: incoming enquiries dissolving into the cosmos ----------------
-   live multilingual buyer enquiries pop in around the headline, hold, then
-   disintegrate into a spray of small gold dots (the <canvas>) that stream inward
-   to feed the particle field — "incoming leads -> the AI's cosmos", made literal. */
-.herofx {
-  position: fixed;
-  inset: 0;
-  z-index: 7;
-  pointer-events: none;
-  will-change: opacity;
-}
-.hero-bub {
-  position: absolute;
-  width: max-content;
-  max-width: 248px;
-  padding: 11px 14px;
-  border-radius: 16px;
-  border-bottom-left-radius: 5px;
-  background: rgba(255, 255, 255, 0.075);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.42), inset 0 0 0 1px rgba(255, 255, 255, 0.07);
-  color: #e7e2f0;
-  font-size: 13px;
-  line-height: 1.45;
-  text-align: left;
-  opacity: 0;
-  transform: translate(-50%, -50%) scale(0.82);
-  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), filter 0.45s ease;
-}
-.hero-bub .htag {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-bottom: 5px;
-  font-size: 9px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--gold);
-  opacity: 0.85;
-}
-.hero-bub .htag svg {
-  width: 13px;
-  height: 13px;
-  flex: none;
-  display: block;
-}
-.hero-bub.in {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
-}
-/* disintegration: bubble blurs + lifts away while the canvas dots take over */
-.hero-bub.out {
-  opacity: 0;
-  transform: translate(-50%, -50%) scale(1.06);
-  filter: blur(7px);
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-bub { transition: opacity 0.3s ease; }
-  .hero-bub.out { filter: none; transform: translate(-50%, -50%) scale(1); }
-}
-@media (max-width: 720px) {
-  .hero-bub { max-width: 62vw; font-size: 12px; padding: 9px 12px; }
-}
-
-/* ---------------- human vs. machine: frailty lines that shatter away ----------------
-   a centred column of human limitations, dim and lifeless, sitting above the
-   headline. As the visitor scrolls the beat each line disintegrates (blur + lift)
-   while components/HumanLimits.tsx fires real WebGL particles from its position. */
-.limitsfx {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 6;
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  width: max-content;
-  max-width: 92vw;
-  text-align: center;
-  opacity: 0;
-  visibility: hidden;
-  will-change: opacity;
-}
-/* gold subject line that anchors the frailties below it */
-.limit-lead {
-  font-size: clamp(11px, 1.05vw, 13px);
-  font-weight: 600;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
-  color: #f3c578;
-  margin-bottom: 6px;
-  text-shadow: 0 1px 12px rgba(7, 3, 24, 0.7);
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), filter 0.55s ease;
-}
-.limit-lead.gone {
-  opacity: 0;
-  transform: scale(1.09);
-  filter: blur(8px);
-}
-.limit-word {
-  font-size: clamp(22px, 3.3vw, 36px);
+h1, h2, h3 {
+  font-family: var(--font-serif), system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: -0.01em;
-  /* a cool, clear white — legible over the orb/field, but kept cooler than the
-     warm-gold AI copy so humans still read as the "lifeless" side of the beat */
-  color: rgba(236, 233, 244, 0.95);
-  text-shadow: 0 2px 20px rgba(7, 3, 24, 0.78), 0 0 2px rgba(7, 3, 24, 0.5);
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), filter 0.55s ease;
-}
-.limit-word.gone {
-  opacity: 0;
-  transform: scale(1.09);
-  filter: blur(8px);
-}
-@media (prefers-reduced-motion: reduce) {
-  .limit-word, .limit-lead { transition: opacity 0.3s ease; }
-  .limit-word.gone, .limit-lead.gone { filter: none; transform: none; }
-}
-@media (max-width: 720px) {
-  .limitsfx { gap: 9px; }
-  .limit-word { font-size: 20px; }
+  line-height: 1.08;
+  margin: 0;
 }
 
-/* the outcome beat's proof line: always-on numbers, set as luxe inline text — no
-   boxes, no grid, just gold figures with quiet labels separated by hairlines */
-.outcome-stats {
-  margin-top: 30px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: center;
-  gap: 9px 20px;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #b9b1c4;
+p { margin: 0; }
+a { color: inherit; text-decoration: none; }
+
+.accent {
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-style: normal;
 }
-.outcome-stats span {
+em { font-style: normal; }
+
+/* neon glow on the gradient accent — reads in dark mode only */
+[data-theme='dark'] .accent {
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--accent) 60%, transparent));
+}
+
+/* ---- accent "vibes": each highlighted word moves to match its meaning ---- */
+/* "slow reply" — sluggish & lagging: the gradient crawls and the word gently
+   dims, as if the reply is dragging its feet */
+.accent--slow {
+  background-size: 230% 100%;
+  animation: accentSlow 7s ease-in-out infinite;
+}
+@keyframes accentSlow {
+  0%, 100% { background-position: 0% 0; opacity: 1; }
+  50% { background-position: 100% 0; opacity: 0.78; }
+}
+/* "fully automated" — a smooth mechanical conveyor: colour streams steadily and
+   seamlessly in one direction, hands-off and continuous */
+.accent--auto {
+  background-size: 230% 100%;
+  animation: accentAuto 2.6s linear infinite;
+}
+@keyframes accentAuto {
+  from { background-position: 200% 0; }
+  to { background-position: 0% 0; }
+}
+/* "lead engine" — a revving powerhouse: the glow throbs with energy, like an
+   engine under load */
+.accent--engine {
+  background-size: 190% 100%;
+  animation: accentEngine 1.5s ease-in-out infinite;
+}
+@keyframes accentEngine {
+  0%, 100% {
+    background-position: 0% 0;
+    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 38%, transparent));
+  }
+  50% {
+    background-position: 55% 0;
+    filter: drop-shadow(0 0 22px color-mix(in srgb, var(--accent) 78%, transparent));
+  }
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: clamp(20px, 5vw, 56px);
+}
+
+.eyebrow {
   display: inline-flex;
-  align-items: baseline;
-  gap: 7px;
-}
-.outcome-stats span + span {
-  border-left: 1px solid rgba(255, 255, 255, 0.14);
-  padding-left: 20px;
-}
-.outcome-stats b {
-  color: var(--gold);
-  font-weight: 700;
-  font-size: 15px;
-  letter-spacing: 0.04em;
-  text-transform: none;
-  text-shadow: 0 0 14px rgba(245, 193, 108, 0.35);
-}
-@media (max-width: 720px) {
-  .outcome-stats { gap: 8px 14px; font-size: 10px; }
-  .outcome-stats span + span { border-left: none; padding-left: 0; }
-}
-
-/* ---------------- chat flow: a single exchange rising out of the AI core ----------------
-   stacked vertically and centred so it reads in clean order beneath the orb and
-   never clips on narrow viewports: buyer enquiry (glass, left) then the AI's
-   gold reply (right) with its caption. */
-.chatflow {
-  position: fixed;
-  left: 50%;
-  top: 59%;
-  transform: translate(-50%, -50%);
-  width: min(90vw, 430px);
-  display: flex;
-  flex-direction: column;
-  gap: 13px;
-  z-index: 9;
-  opacity: 0;
-  pointer-events: none;
-}
-.flow-q {
-  align-self: stretch;
-  animation: chSwap 0.6s ease both;
-}
-.flow-a {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  text-align: left;
-}
-.flow-tag {
-  display: block;
-  margin: 0 0 7px 4px;
-  font-size: 9.5px;
-  letter-spacing: 0.22em;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #9b93a8;
+  color: var(--muted);
 }
-.flow-q .bub.in {
-  display: inline-block;
-  max-width: 90%;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
-}
-.flow-a .ch-out { max-width: 90%; }
-.flow-a .bub.out { box-shadow: 0 16px 44px rgba(245, 193, 108, 0.34); }
-.flow-cap {
-  margin-top: 13px;
-  max-width: 100%;
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  line-height: 1.5;
-  text-transform: uppercase;
-  text-align: right;
-  color: var(--gold);
-  opacity: 0.92;
+.eyebrow::before {
+  content: '';
+  width: 22px;
+  height: 1.5px;
+  background: var(--grad);
+  border-radius: 2px;
 }
 
-/* ---------------- HUD ---------------- */
-.hud {
-  position: fixed;
-  z-index: 11;
-  pointer-events: none;
-  color: #cfc8d8;
+/* ---------------- header ---------------- */
+.site-head {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  /* no backdrop-filter: a blurred sticky header re-blurs the whole viewport on
+     every scroll frame (desktop stutter). Use a near-opaque bg to cover content
+     scrolling under it instead — same trade mobile already makes. */
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s ease;
 }
-
-/* brand lockup: chevron mark + wordmark */
-.hud.brand {
-  top: 30px;
-  left: 40px;
+.site-head .wrap {
   display: flex;
   align-items: center;
-  gap: 13px;
+  justify-content: space-between;
+  height: 72px;
 }
-.hud.brand .logo {
-  flex: none;
-  filter: drop-shadow(0 0 12px rgba(245, 193, 108, 0.32));
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
 }
-.hud.brand .brand-txt {
-  font-size: 11.5px;
+.brand .name {
+  font-family: var(--font-serif), serif;
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+/* ---------------- buttons ---------------- */
+.btn {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 54px;
+  padding: 0 34px;
+  border-radius: 999px;
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  backdrop-filter: blur(14px) saturate(180%);
+  overflow: hidden;
+  font-family: var(--font-serif), sans-serif;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.4em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  cursor: pointer;
+  border: 0;
+  white-space: nowrap;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease,
+    filter 0.3s ease, background 0.3s ease, color 0.3s ease;
+}
+.btn svg { flex: none; }
+
+/* liquid-glass pill: a translucent brand-tinted face over a blurred backdrop,
+   with a bright specular highlight along the top edge and a soft brand glow that
+   lifts it off the page — Apple "Liquid Glass" feel */
+.btn-primary {
+  color: #fff;
+  background:
+    /* convex dome reflection — the bright curved gloss across the top */
+    radial-gradient(135% 100% at 50% -32%, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.16) 30%, rgba(255, 255, 255, 0) 56%),
+    /* single-hue purple droplets: lighter + deeper shades of the SAME violet read
+       as light refracting through liquid inside the glass */
+    radial-gradient(60% 150% at 13% 20%, color-mix(in srgb, #b78bff 70%, transparent) 0%, transparent 60%),
+    radial-gradient(54% 150% at 88% 30%, color-mix(in srgb, #9a5cff 70%, transparent) 0%, transparent 62%),
+    radial-gradient(70% 170% at 70% 86%, color-mix(in srgb, #3d1a8f 68%, transparent) 0%, transparent 66%),
+    radial-gradient(64% 160% at 30% 78%, color-mix(in srgb, #7a3df0 66%, transparent) 0%, transparent 64%),
+    /* translucent violet base so the scene still refracts through */
+    color-mix(in srgb, #5a2bb0 40%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.85),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 -12px 22px rgba(40, 10, 60, 0.28),
+    0 14px 32px color-mix(in srgb, var(--accent) 46%, transparent),
+    0 2px 5px rgba(0, 0, 0, 0.2);
+}
+/* a small brand facet sunk into the glass — blurred + clipped to the pill so it
+   reads as the logo refracting through the liquid, never a hard logo on top */
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  left: 22%;
+  top: 50%;
+  width: 72px;
+  height: 72px;
+  transform: translate(-50%, -50%) rotate(-8deg);
+  background: url('/logo-3d.png') center / contain no-repeat;
+  filter: blur(2.5px);
+  opacity: 0.4;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+/* keep the label + arrow above the embedded facet */
+.btn-primary > * { position: relative; z-index: 1; }
+/* text-only shimmer in logo colours: a bright gold band sweeps across the label */
+.btn-label {
+  background-image: linear-gradient(
+    100deg,
+    #fff 0%, #fff 38%,
+    #f5c16c 46%, #e08a16 50%, #f5c16c 54%,
+    #fff 62%, #fff 100%
+  );
+  background-size: 250% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: textShine 7s ease-in-out infinite;
+}
+@keyframes textShine {
+  0% { background-position: 130% 0; }
+  45%, 100% { background-position: -30% 0; }
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -10px 18px rgba(0, 0, 0, 0.18),
+    0 16px 34px color-mix(in srgb, var(--accent) 52%, transparent),
+    0 3px 6px rgba(0, 0, 0, 0.2);
+}
+.btn-primary:active {
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 6px 16px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+/* frosted clear-glass pill — translucent so the scene blurs through it, with a
+   bright top highlight and a hairline rim. text colour follows the theme */
+.btn-ghost {
+  color: var(--ink);
+  background:
+    radial-gradient(135% 100% at 50% -32%, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.22) 30%, rgba(255, 255, 255, 0) 56%),
+    radial-gradient(56% 150% at 16% 26%, rgba(122, 61, 240, 0.42), transparent 66%),
+    radial-gradient(60% 150% at 84% 78%, rgba(224, 138, 22, 0.42), transparent 66%),
+    color-mix(in srgb, var(--surface) 46%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ink) 14%, rgba(255, 255, 255, 0.6));
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.25),
+    inset 0 -8px 16px rgba(0, 0, 0, 0.06),
+    0 14px 30px rgba(20, 16, 40, 0.18),
+    0 2px 5px rgba(20, 16, 40, 0.1);
+}
+.btn-ghost:hover {
+  transform: translateY(-2px);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 88%, transparent) 0%, color-mix(in srgb, var(--surface) 62%, transparent) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -8px 16px rgba(0, 0, 0, 0.06),
+    0 16px 30px rgba(20, 16, 40, 0.2),
+    0 3px 6px rgba(20, 16, 40, 0.12);
+}
+.btn-ghost:active {
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 2px 6px rgba(20, 16, 40, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 6px 14px rgba(20, 16, 40, 0.14);
+}
+
+/* dark theme: the bright gloss, rim and outer glow read as flashy on a dark
+   backdrop — dim the highlights and halo so the glass stays calm */
+[data-theme='dark'] .btn-primary {
+  background:
+    radial-gradient(135% 100% at 50% -32%, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0.08) 30%, rgba(255, 255, 255, 0) 56%),
+    radial-gradient(60% 150% at 13% 20%, color-mix(in srgb, #b78bff 60%, transparent) 0%, transparent 60%),
+    radial-gradient(54% 150% at 88% 30%, color-mix(in srgb, #9a5cff 58%, transparent) 0%, transparent 62%),
+    radial-gradient(70% 170% at 70% 86%, color-mix(in srgb, #3d1a8f 60%, transparent) 0%, transparent 66%),
+    radial-gradient(64% 160% at 30% 78%, color-mix(in srgb, #7a3df0 56%, transparent) 0%, transparent 64%),
+    color-mix(in srgb, #4a2390 42%, transparent);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -10px 18px rgba(20, 6, 36, 0.3),
+    0 10px 24px color-mix(in srgb, var(--accent) 24%, transparent),
+    0 2px 5px rgba(0, 0, 0, 0.3);
+}
+[data-theme='dark'] .btn-ghost {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 -8px 16px rgba(0, 0, 0, 0.18),
+    0 10px 24px rgba(0, 0, 0, 0.3),
+    0 2px 5px rgba(0, 0, 0, 0.18);
+}
+
+.btn-sm { height: 44px; padding: 0 24px; font-size: 12px; }
+/* the header button lives inside the sticky header; its blur would recomposite
+   every scroll frame on top of the header itself. Hero/final CTAs keep the glass. */
+.head-actions .btn { -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+/* page-level floating CTA — only shown on phones (see mobile media query) */
+.cta-float { display: none; }
+
+.head-actions { display: flex; align-items: center; gap: 12px; }
+/* Neumorphic day/night pill switch. Knob shows the CURRENT mode and slides:
+   light=DAY → knob right + amber ring + sun; dark=NIGHT → knob left + indigo ring + moon. */
+.theme-toggle {
+  position: relative;
+  display: inline-block;
+  width: 64px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 9%, var(--surface));
+  box-shadow:
+    inset 2px 2px 5px color-mix(in srgb, var(--ink) 22%, transparent),
+    inset -2px -2px 5px color-mix(in srgb, var(--surface) 90%, #fff);
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.theme-toggle .tt-knob {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: #fff;
+  color: #2a2a2e;
+  box-shadow: 0 0 0 3px #ffb020, 0 2px 4px rgba(0, 0, 0, 0.3);
+  transform: translateX(30px);
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+}
+[data-theme='dark'] .theme-toggle .tt-knob {
+  transform: translateX(0);
+  box-shadow: 0 0 0 3px #6d4bff, 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+.theme-toggle .sun { display: block; }
+.theme-toggle .moon { display: none; }
+[data-theme='dark'] .theme-toggle .sun { display: none; }
+[data-theme='dark'] .theme-toggle .moon { display: block; }
+
+/* ---------------- hero ---------------- */
+.hero {
+  padding-top: clamp(32px, 5vw, 64px);
+  padding-bottom: clamp(40px, 6vw, 80px);
+}
+.hero .wrap {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(36px, 6vw, 80px);
+  align-items: center;
+  position: relative;
+}
+/* the agent stands in the gap between the headline and the live chat card,
+   bottom-anchored, peeking out to the left of the card which sits in front. */
+.hero-person {
+  position: absolute;
+  z-index: 1;
+  left: 40%;
+  bottom: 0;
+  height: min(80vh, 600px);
+  width: auto;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, #000 92%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 92%, transparent 100%);
+}
+.hero .wrap .chat { position: relative; z-index: 2; }
+.hero h1 {
+  font-size: clamp(38px, 5.4vw, 64px);
+  margin-top: 18px;
+  max-width: 13ch;
+}
+.hero .sub {
+  font-size: clamp(14px, 1.2vw, 16px);
+  color: var(--muted);
+  max-width: 38ch;
+  margin-top: 18px;
+}
+.hero .cta-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 14px;
+  margin-top: 26px;
+}
+.hero .cta-row .btn { padding: 0 32px; }
+.trust {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-top: 26px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.trust .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 22%, transparent); }
+.trust b { color: var(--ink); font-weight: 600; }
+.trust .sep { opacity: 0.4; }
+
+/* ---------------- chat mockup ---------------- */
+.chat {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  width: 100%;
+  max-width: 420px;
+  justify-self: end;
+}
+.chat-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.chat-av {
+  position: relative;
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 3px rgba(20, 16, 30, 0.08);
+  flex: none;
+}
+/* the avatar shows the channel each enquiry arrived on — WhatsApp / Instagram
+   crossfade with a little pop as the chat cycles */
+.av-ico {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  opacity: 0; transform: scale(0.55) rotate(-14deg);
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.av-ico.on { opacity: 1; transform: none; }
+.chat-top .who { font-weight: 600; font-size: 15px; line-height: 1.2; }
+.chat-top .stat {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12.5px; color: var(--green); font-weight: 500;
+  margin-top: 1px;
+}
+.chat-top .stat i {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green); display: inline-block;
+  animation: statBlink 1.6s ease-in-out infinite;
+}
+@keyframes statBlink {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 color-mix(in srgb, var(--green) 55%, transparent); }
+  50% { opacity: 0.5; box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 0%, transparent); }
+}
+.chat-body {
+  padding: 22px 18px;
+  /* FIXED (not min-) height: the typing loop swaps question → typing → reply →
+     caption every cycle and the text length differs per language, so any
+     content-driven height makes the card grow/shrink and shifts the whole page
+     up and down on a timer. A fixed box absorbs every phase — content is
+     top-aligned and the card's overflow:hidden clips the rare overflow. */
+  height: 360px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 12px;
+  background:
+    radial-gradient(circle at 80% 0%, rgba(122, 61, 240, 0.04), transparent 60%),
+    var(--surface);
+}
+.row { display: flex; }
+.row.in { justify-content: flex-start; }
+.row.out { justify-content: flex-end; }
+.bubble {
+  max-width: 82%;
+  padding: 11px 15px;
+  border-radius: 18px;
+  font-size: 14.5px;
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+}
+.bubble.in { background: var(--bubble-in); border-bottom-left-radius: 6px; }
+.bubble.out { background: var(--bubble-out); border-bottom-right-radius: 6px; }
+.pop { animation: pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes pop {
+  0% { opacity: 0; transform: translateY(8px) scale(0.97); }
+  100% { opacity: 1; transform: none; }
+}
+.typing {
+  display: inline-flex;
+  gap: 4px;
+  padding: 13px 16px;
+  background: var(--bubble-out);
+  border-radius: 18px;
+  border-bottom-right-radius: 6px;
+}
+.typing i {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.5;
+  animation: blink 1.2s infinite ease-in-out;
+}
+.typing i:nth-child(2) { animation-delay: 0.2s; }
+.typing i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink {
+  0%, 60%, 100% { opacity: 0.28; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+.chat-cap {
+  font-size: 11.5px;
+  color: var(--muted);
+  text-align: right;
+  padding: 0 4px;
+}
+.chat-tag {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  padding: 5px 11px;
+  border-radius: 999px;
+}
+.chat-tag svg { display: block; }
+
+/* fake composer bar — makes the card read as a real WhatsApp screen (header →
+   messages → input). Purely decorative; the whole chat is aria-hidden. */
+.chat-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--ink) 3%, var(--surface));
+}
+.ci-field {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--bubble-in);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 13.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ci-send {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: var(--grad);
+  box-shadow: 0 4px 12px -3px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.ci-send svg { display: block; transform: translateX(-1px); }
+
+/* ---------------- flow line (connecting thread) ---------------- */
+.flow { position: relative; z-index: 0; }
+.flow-line {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.flow-svg { position: absolute; top: 0; left: 0; z-index: -1; overflow: visible; }
+/* the rail — a solid, always-on thin outline so every card reads as a clean,
+   complete frame even before the gradient fill reaches it (no "dotted/empty" look) */
+.flow-track {
+  stroke: color-mix(in srgb, var(--accent) 22%, transparent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+/* the brand-gradient fill that grows with scroll */
+.flow-draw {
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-opacity: 0.85;
+  fill: none;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 45%, transparent));
+}
+/* the invisible centreline — only sampled in JS for the orb's position */
+.flow-spine { fill: none; stroke: none; }
+/* automation cards sit above the thread so it tucks behind them */
+.flow .chat, .flow .sheet, .flow .cal, .flow .dash {
+  position: relative;
+  z-index: 1;
+  transition: box-shadow 0.55s ease, border-color 0.55s ease;
+}
+/* a stage lights up as the lead reaches it — the journey building into control */
+.flow .lead-lit {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 28%, transparent),
+    0 24px 70px -26px color-mix(in srgb, var(--accent) 60%, transparent),
+    var(--shadow-lg);
+}
+
+/* ── the lead: the brand logo itself rides the spine as one protagonist ────── */
+.lead-orb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0; /* above the rail (-1), below the cards (1) → dives behind stages */
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px; /* centre on the sampled point */
+  display: grid;
+  place-items: center;
+  will-change: transform, opacity;
+  transition: opacity 0.25s ease;
+}
+/* the mark rides inside a solid node — an opaque core fully knocks the line
+   out behind the logo (covers the PNG's transparent edges), feathering only at
+   the very rim so it reads as an intentional glowing waypoint, not a flat disc */
+/* a soft brand-tinted glow gives the mark presence over busy text — no opaque
+   disc needed now that the rail ends at the logo instead of passing behind it */
+.lead-orb::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--bg) 88%, transparent) 38%, transparent 74%);
+}
+/* the logo gets a brand glow so it reads as a charged, living mark */
+.lead-orb img {
+  position: relative;
+  z-index: 1;
+  width: 30px;
+  height: 30px;
+  filter:
+    drop-shadow(0 0 7px color-mix(in srgb, var(--accent) 80%, transparent))
+    drop-shadow(0 0 16px color-mix(in srgb, #7a3df0 55%, transparent));
+  animation: leadBob 1.9s ease-in-out infinite;
+}
+/* a soft halo pulsing behind the mark */
+.lead-orb::after {
+  content: '';
+  position: absolute;
+  inset: -9px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 38%, transparent), transparent 70%);
+  animation: leadPulse 1.5s ease-in-out infinite;
+}
+@keyframes leadPulse {
+  0%, 100% { transform: scale(0.8); opacity: 0.55; }
+  50% { transform: scale(1.25); opacity: 0.95; }
+}
+@keyframes leadBob {
+  0%, 100% { transform: scale(0.97); }
+  50% { transform: scale(1.05); }
+}
+
+/* keep the spine on mobile too — the cards stack vertically so it reads as a
+   clean centre rail threading each stage */
+
+/* ---------------- automation pipeline (one connected flow) ---------------- */
+.pipeline-flow {
+  margin-top: clamp(44px, 7vw, 90px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(60px, 9vw, 120px);
+}
+.stage {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+.stage > .sheet, .stage > .cal, .stage > .dash { max-width: none; }
+.stage-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+/* ---------------- sheet sync (automation beat) ---------------- */
+.sheet {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.sheet-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--ink) 3%, var(--surface));
+}
+.sheet-dots { display: inline-flex; gap: 6px; }
+.sheet-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.sheet-name { font-weight: 600; font-size: 13.5px; letter-spacing: 0.01em; }
+.sheet-sync {
+  margin-left: auto;
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.sheet-sync i {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--line);
+}
+.sheet-sync.on { color: var(--green); }
+.sheet-sync.on i { background: var(--green); animation: statBlink 1s ease-in-out infinite; }
+
+.sheet-grid { font-size: 13.5px; }
+.srow {
+  display: grid;
+  grid-template-columns: 40px 1.1fr 1fr 1.2fr 0.9fr 0.9fr;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+/* reserve every data row at its filled height. The new lead row starts empty
+   (short) and grows ~4px when its status PILL renders, then resets each loop —
+   that tiny per-cycle growth was bubbling up through .pipeline → .flow and
+   nudging the whole page up and down. Pinning the row kills the reflow. */
+.srow:not(.shead) { min-height: 52px; }
+.srow > span { padding: 13px 14px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.srow:last-child { border-bottom: 0; }
+.shead {
+  background: color-mix(in srgb, var(--ink) 3%, var(--surface));
+  color: var(--muted);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
+}
+.snum { color: var(--muted); font-size: 12px; text-align: center; }
+
+.ch { font-weight: 600; }
+.ch--whatsapp { color: #1ea952; }
+.ch--instagram {
+  background: linear-gradient(45deg, #fa7e1e, #d62976 55%, #962fbf);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+.pill {
+  display: inline-block;
+  padding: 3px 11px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 700; font-style: normal; letter-spacing: 0.03em;
+}
+.pill--done { background: color-mix(in srgb, var(--green) 14%, transparent); color: var(--green); }
+.pill--hot {
+  background: var(--grad); color: #fff;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.snew { transition: background 0.4s ease, box-shadow 0.4s ease; }
+.snew.lit { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.snew.logged {
+  background: color-mix(in srgb, var(--green) 8%, transparent);
+  box-shadow: inset 3px 0 0 var(--green);
+}
+.snew .cell { min-height: 1.2em; }
+.snew .cell.in { animation: cellIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes cellIn {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: none; }
+}
+
+.sheet-cap {
+  padding: 13px 16px;
+  font-size: 12.5px; font-weight: 600; letter-spacing: 0.02em;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  opacity: 0; transform: translateY(4px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.sheet-cap.in { opacity: 1; transform: none; color: var(--green); }
+
+@media (max-width: 640px) {
+  .sheet-grid { font-size: 12px; }
+  .srow { grid-template-columns: 28px 1fr 1fr 1fr; }
+  .srow > span:nth-child(3), .srow > span:nth-child(5) { display: none; }
+}
+
+/* ---------------- calendar booking (automation beat) ---------------- */
+.cal {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.cal-top {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--ink) 3%, var(--surface));
+}
+.cal-month { font-weight: 700; font-size: 14px; letter-spacing: 0.01em; }
+.cal-sync {
+  margin-left: auto;
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.cal-sync i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.cal-sync.on { color: var(--accent); }
+.cal-sync.on i { background: var(--accent); animation: statBlink 1s ease-in-out infinite; }
+
+.cal-week {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid var(--line);
+}
+.cal-day {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 12px 0;
+}
+.cal-day .cd { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--muted); }
+.cal-day .cn {
+  display: grid; place-items: center;
+  width: 30px; height: 30px; border-radius: 50%;
+  font-size: 14px; font-weight: 600;
+}
+.cal-day.hot .cd { color: var(--accent); }
+.cal-day.hot .cn { background: var(--grad); color: #fff; }
+
+.cal-grid { padding: 6px 0; }
+.cal-slot {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  align-items: stretch;
+  min-height: 52px;
+  border-top: 1px solid var(--line);
+}
+.cal-slot:first-child { border-top: 0; }
+.cal-slot .ct {
+  font-size: 12px; color: var(--muted); font-weight: 600;
+  padding: 8px 0 0 18px;
+}
+.cal-lane { position: relative; padding: 6px 14px 6px 0; }
+/* the event is absolutely positioned inside its lane so a 2-line card can't grow
+   the 52px slot — that per-loop growth was nudging the whole pipeline (and page)
+   up and down. The slot height now stays constant whether the event is shown. */
+.cal-event {
+  position: absolute;
+  inset: 6px 14px 6px 0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border-left: 3px solid var(--accent);
+  display: flex; flex-direction: column; gap: 2px; justify-content: center;
+  animation: calPop 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition: background 0.4s ease, border-color 0.4s ease;
+}
+.cal-event strong { font-size: 13px; font-weight: 700; }
+.cal-event span { font-size: 12px; color: var(--muted); }
+.cal-event.confirmed {
+  background: color-mix(in srgb, var(--green) 13%, var(--surface));
+  border-left-color: var(--green);
+}
+@keyframes calPop {
+  0% { opacity: 0; transform: translateX(-8px) scale(0.97); }
+  100% { opacity: 1; transform: none; }
+}
+.cal-cap {
+  padding: 13px 18px;
+  font-size: 12.5px; font-weight: 600; letter-spacing: 0.02em;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  opacity: 0; transform: translateY(4px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.cal-cap.in { opacity: 1; transform: none; color: var(--green); }
+
+/* ---------------- dashboard (automation payoff) ---------------- */
+.dash {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.dash-top {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--ink) 3%, var(--surface));
+}
+.dash-title { font-weight: 700; font-size: 14px; letter-spacing: 0.01em; }
+.dash-live {
+  margin-left: auto;
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.04em; color: var(--green);
+}
+.dash-live i {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+  animation: statBlink 1.4s ease-in-out infinite;
+}
+
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+.dash-cell {
+  padding: 18px;
+  display: flex; flex-direction: column; gap: 4px;
+  border-bottom: 1px solid var(--line);
+}
+.dash-cell:nth-child(odd) { border-right: 1px solid var(--line); }
+.dash-cell b {
+  font-family: var(--font-serif), sans-serif;
+  font-size: clamp(26px, 3.2vw, 34px);
+  font-weight: 600; line-height: 1;
+  background: var(--grad);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  font-variant-numeric: tabular-nums;
+}
+.dash-cell span { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+
+.dash-chart { padding: 18px; }
+.dash-chart-head {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 12.5px; color: var(--muted); font-weight: 600;
+  margin-bottom: 14px;
+}
+.dash-chart-head .up { color: var(--green); }
+.dash-bars {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  align-items: end;
+  gap: 10px;
+  height: 104px;
+}
+.dash-bar { display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
+.dash-bar .bar {
+  width: 100%; max-width: 26px;
+  border-radius: 6px 6px 3px 3px;
+  background: var(--grad);
+  transition: height 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.dash-bar:last-child .bar { box-shadow: 0 3px 12px color-mix(in srgb, var(--accent) 35%, transparent); }
+.dash-bar em { font-size: 11px; color: var(--muted); font-style: normal; font-weight: 600; }
+
+
+/* ---------------- section artwork backdrops ---------------- */
+.has-art { position: relative; overflow: hidden; }
+.has-art > .wrap { position: relative; z-index: 1; }
+.art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+/* --- brand-mark bleed: one oversized mark anchored off a section edge --- */
+.logo-bleed img { position: absolute; display: block; height: auto; }
+
+.logo-bleed--hero img {
+  top: 2%; right: -9%;
+  width: clamp(300px, 42vw, 560px);
+  transform: rotate(-8deg);
+  opacity: 0.1;
+  -webkit-mask-image: radial-gradient(58% 58% at 70% 50%, #000 30%, transparent 74%);
+  mask-image: radial-gradient(58% 58% at 70% 50%, #000 30%, transparent 74%);
+}
+.logo-bleed--a img {
+  bottom: -22%; left: -9%;
+  width: clamp(280px, 40vw, 540px);
+  transform: rotate(11deg);
+  opacity: 0.08;
+  -webkit-mask-image: linear-gradient(45deg, #000 35%, transparent 80%);
+  mask-image: linear-gradient(45deg, #000 35%, transparent 80%);
+}
+.logo-bleed--b img {
+  top: -18%; right: -9%;
+  width: clamp(280px, 38vw, 520px);
+  transform: rotate(13deg);
+  opacity: 0.08;
+  -webkit-mask-image: linear-gradient(225deg, #000 35%, transparent 80%);
+  mask-image: linear-gradient(225deg, #000 35%, transparent 80%);
+}
+.logo-bleed--c img {
+  bottom: -20%; right: -7%;
+  width: clamp(280px, 38vw, 520px);
+  transform: rotate(-11deg);
+  opacity: 0.08;
+  -webkit-mask-image: linear-gradient(135deg, #000 35%, transparent 80%);
+  mask-image: linear-gradient(135deg, #000 35%, transparent 80%);
+}
+.logo-bleed--final img {
+  top: 50%; left: 50%;
+  width: clamp(360px, 48vw, 680px);
+  transform: translate(-50%, -50%);
+  opacity: 0.11;
+  -webkit-mask-image: radial-gradient(circle, #000 38%, transparent 76%);
+  mask-image: radial-gradient(circle, #000 38%, transparent 76%);
+}
+
+[data-theme='dark'] .logo-bleed img { filter: brightness(1.3); }
+
+/* ---------------- generic section ---------------- */
+section { position: relative; }
+.band {
+  padding-block: clamp(64px, 10vw, 128px);
+}
+.band.tint { background: var(--surface); border-block: 1px solid var(--line); }
+/* compact band — fits heading, cards and stats in a single viewport */
+.band--tight { padding-block: clamp(40px, 5vw, 64px); }
+.band--tight .sec-head--center { max-width: 40ch; }
+.band--tight .sec-head h2 { font-size: clamp(26px, 3.2vw, 40px); margin-top: 12px; }
+.band--tight .sec-head .lead { margin-top: 12px; }
+.band--tight .langs { margin-top: clamp(24px, 3vw, 36px); }
+.band--tight .lang-card { padding: 18px 18px; }
+.band--tight .stats { margin-top: clamp(24px, 3vw, 40px); }
+.band--tight .stat-cell b { font-size: clamp(26px, 3vw, 38px); }
+.sec-head { max-width: 30ch; }
+.sec-head h2 {
+  font-size: clamp(30px, 4.4vw, 52px);
+  margin-top: 16px;
+}
+.sec-head .lead {
+  font-size: clamp(16px, 1.4vw, 18px);
+  color: var(--muted);
+  margin-top: 18px;
+  max-width: 52ch;
+}
+.sec-head--center {
+  max-width: 22ch;
+  margin-inline: auto;
+  text-align: center;
+}
+.sec-head--center .eyebrow { justify-content: center; }
+.sec-head--center .lead { max-width: 46ch; margin-inline: auto; }
+
+/* the flow line runs straight down the centre, so any copy sitting in the gap
+   between cards would have the line cross its letters. A feathered halo in the
+   page background colour tucks the line cleanly behind the text — fully readable,
+   with no opaque box around it. */
+.flow .sec-head .eyebrow,
+.flow .sec-head h2,
+.flow .sec-head .lead,
+.flow .stage-tag,
+.flow .copy h1,
+.flow .copy .sub,
+.flow .copy .eyebrow,
+.flow .copy .trust {
+  text-shadow:
+    0 0 7px var(--bg), 0 0 7px var(--bg),
+    0 0 14px var(--bg), 0 0 14px var(--bg),
+    0 0 22px var(--bg);
+}
+/* the gradient accent words are clipped fills; a bg-colour halo bleeds over their
+   thin light strokes and washes them out — keep them crisp with no halo */
+.flow .accent { text-shadow: none; }
+
+/* ---------------- steps ---------------- */
+.steps {
+  margin-top: clamp(40px, 6vw, 64px);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(24px, 4vw, 48px);
+}
+.step .no {
+  font-family: var(--font-serif), serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent-2);
+  letter-spacing: 0.08em;
+}
+.step h3 {
+  font-size: 22px;
+  margin-top: 14px;
+  margin-bottom: 10px;
+}
+.step p { color: var(--muted); font-size: 15.5px; }
+.step .rule { height: 1px; background: var(--line); margin-top: 22px; }
+
+/* ---------------- language proof ---------------- */
+.langs {
+  margin-top: clamp(36px, 5vw, 56px);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+.lang-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 22px 20px;
+  box-shadow: var(--shadow-sm);
+}
+.lang-card .flag {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted);
+}
+.lang-card .q { font-size: 14.5px; margin-top: 12px; color: var(--ink); }
+.lang-card .a {
+  font-size: 14px; margin-top: 12px; color: var(--accent);
+  padding-top: 12px; border-top: 1px dashed var(--line);
+}
+
+/* ---------------- stats ---------------- */
+.stats {
+  margin-top: clamp(44px, 6vw, 72px);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+/* thin gradient hairlines divide the cells so the row reads as one instrument
+   panel rather than four loose numbers */
+.stat-cell {
+  position: relative;
+  padding-left: 24px;
+}
+.stat-cell + .stat-cell::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8%;
+  height: 84%;
+  width: 1.5px;
+  border-radius: 2px;
+  background: linear-gradient(var(--accent), transparent);
+  opacity: 0.35;
+}
+.stats .stat-cell:first-child { padding-left: 0; }
+.stat-cell b {
+  display: block;
+  font-family: var(--font-serif), serif;
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 600;
   line-height: 1;
 }
-.hud.brand .brand-txt small {
-  display: block;
-  margin-top: 7px;
-  font-size: 8.5px;
-  font-weight: 400;
-  letter-spacing: 0.28em;
-  opacity: 0.5;
+/* the big number wears the brand gradient + a soft glow so it reads as a live
+   readout, not static black text */
+.stat-num {
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-variant-numeric: tabular-nums;
 }
+[data-theme='dark'] .stat-num {
+  filter: drop-shadow(0 0 16px color-mix(in srgb, var(--accent) 50%, transparent));
+}
+.stat-cell span { display: block; margin-top: 8px; font-size: 14px; color: var(--muted); }
 
-.hud.progress {
-  top: 50%;
-  right: 38px;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
+/* ---------------- final cta ---------------- */
+.final {
+  text-align: center;
+  padding-block: clamp(80px, 12vw, 160px);
 }
-.hud.progress .idx {
-  font-size: 13px;
-  letter-spacing: 0.1em;
-  color: var(--gold);
-}
-.hud.progress .of {
-  font-size: 9px;
-  letter-spacing: 0.2em;
-  opacity: 0.45;
-}
-.hud.progress .track {
-  width: 1px;
-  height: 160px;
-  background: rgba(255, 255, 255, 0.12);
-  position: relative;
-  overflow: hidden;
-}
-.hud.progress .fill {
-  position: absolute;
-  inset: 0;
-  transform-origin: top;
-  transform: scaleY(0);
-  background: linear-gradient(var(--gold), var(--gold-deep));
-}
+.final h2 { font-size: clamp(34px, 5.6vw, 68px); max-width: 16ch; margin-inline: auto; }
+.final .sub { color: var(--muted); margin-top: 20px; font-size: 18px; max-width: 44ch; margin-inline: auto; }
+.final .cta-row { margin-top: 36px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
 
-.hud.scroll-hint {
-  bottom: 34px;
-  left: 50%;
-  transform: translateX(-50%);
+/* ---------------- footer ---------------- */
+.site-foot {
+  border-top: 1px solid var(--line);
+  padding-block: 40px;
+}
+.site-foot .wrap {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  font-size: 10px;
-  letter-spacing: 0.4em;
-  text-transform: uppercase;
-  color: #8e87a0;
-}
-.hud.scroll-hint i {
-  width: 1px;
-  height: 42px;
-  background: linear-gradient(var(--gold), transparent);
-  animation: scrollPulse 2s ease-in-out infinite;
-}
-@keyframes scrollPulse {
-  0%, 100% { transform: scaleY(0.3); opacity: 0.4; transform-origin: top; }
-  50% { transform: scaleY(1); opacity: 1; transform-origin: top; }
-}
-
-/* ---------------- preloader ---------------- */
-.preloader {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  background: radial-gradient(ellipse at center, #0c0626, #050211 75%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 18px;
-  transition: opacity 1s ease, visibility 1s;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 13.5px;
 }
-.preloader.out {
+.foot-mail {
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.foot-mail:hover { color: var(--ink); }
+
+/* ---------------- scroll reveal ---------------- */
+.reveal {
   opacity: 0;
-  visibility: hidden;
+  transform: translateY(20px);
+  transition: opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1), transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
 }
-/* chevron mark intro — inward reveal: rings ignite outer -> gold core */
-.pl-mark {
-  position: relative;
-  display: flex;
-  opacity: 0;
-  animation: plGlow 3s 0.2s ease-out forwards;
+.reveal.in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .pop, .typing i, .chat-top .stat i, .btn-label,
+  .accent--slow, .accent--auto, .accent--engine,
+  .lead-orb::after, .lead-orb img { animation: none; }
+  html { scroll-behavior: auto; }
 }
-/* radial flare that blooms behind the gold core on the final beat */
-.pl-glow {
-  position: absolute;
-  inset: -40%;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at center,
-    rgba(245, 193, 108, 0.55),
-    rgba(245, 193, 108, 0.12) 38%,
-    transparent 68%
-  );
-  opacity: 0;
-  transform: scale(0.4);
-  pointer-events: none;
-  animation: plFlare 1.6s 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-/* each nested ring: hidden, then scales up from centre in inward order */
-.plr {
-  transform-box: view-box;
-  transform-origin: 525px 500px;
-  opacity: 0;
-  transform: scale(0.62);
-  animation: plRing 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.plr-0 { animation-delay: 0s; }
-.plr-1 { animation-delay: 0.35s; }
-.plr-2 { animation-delay: 0.7s; }
-.plr-3 { animation-delay: 1.05s; }
-/* gold core lands last with an extra flare beat */
-.plr-4 {
-  animation-name: plCore;
-  animation-delay: 1.4s;
-  animation-duration: 1.2s;
-}
-.pl-word {
-  font-size: 13px;
-  letter-spacing: 0.5em;
-  text-transform: uppercase;
-  color: var(--cream);
-  opacity: 0;
-  animation: plFade 1s 1.9s forwards;
-}
-.pl-sub {
-  font-size: 9px;
-  letter-spacing: 0.4em;
-  text-transform: uppercase;
-  color: #6f6a82;
-  opacity: 0;
-  animation: plFade 1s 2.15s forwards;
-}
-.pl-bar {
-  margin-top: 14px;
-  width: 180px;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.12);
-  overflow: hidden;
-}
-.pl-bar i {
-  display: block;
-  height: 100%;
-  width: 40%;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-  animation: plLoad 1.4s ease-in-out infinite;
-}
-@keyframes plRing {
-  to { opacity: 1; transform: scale(1); }
-}
-@keyframes plCore {
-  0%   { opacity: 0; transform: scale(0.4); }
-  55%  { opacity: 1; transform: scale(1.18); }
-  100% { opacity: 1; transform: scale(1); }
-}
-@keyframes plFlare {
-  0%   { opacity: 0; transform: scale(0.4); }
-  60%  { opacity: 1; transform: scale(1.1); }
-  100% { opacity: 0.55; transform: scale(1); }
-}
-@keyframes plGlow {
-  0%   { opacity: 0; filter: drop-shadow(0 0 0 rgba(245, 193, 108, 0)); }
-  100% { opacity: 1; filter: drop-shadow(0 0 26px rgba(245, 193, 108, 0.45)); }
-}
-@keyframes plFade { to { opacity: 1; } }
-@keyframes plLoad {
-  0% { transform: translateX(-120%); }
-  100% { transform: translateX(360%); }
+
+/* ---------------- desktop / mobile experience toggle ---------------- */
+/* both trees render server-side; CSS decides which is shown, so there is no
+   hydration flash. Each can be art-directed independently. */
+.view-mobile { display: none; }
+@media (max-width: 900px) {
+  .view-desktop { display: none; }
+  .view-mobile { display: block; }
+
+  /* MOBILE RHYTHM: each automation stage settles to centre-screen as you scroll,
+     so every beat (sheet → calendar → dashboard) gets its own cinematic moment
+     instead of a cramped stack. `proximity` (not mandatory) only nudges when you
+     come to rest near a stage — it never traps the scroll, so the page still
+     flows free through the hero, stats and CTA. */
+  html { scroll-snap-type: y proximity; }
+  .view-mobile .stage {
+    scroll-snap-align: center;
+    scroll-margin-block: 24px;
+  }
 }
 
 /* ---------------- responsive ---------------- */
-@media (max-width: 720px) {
-  .hud.brand { left: 22px; top: 22px; }
-  /* the vertical 01/06 rail collides with the centred 90vw copy on phones */
-  .hud.progress { display: none; }
-
-  .beat { width: 90vw; }
-  .beat h2 { font-size: clamp(25px, 7.4vw, 40px); }
-  .beat p { font-size: 14px; }
-  .beat.core { height: 80vh; }
-  .beat.core p { max-width: 90vw; }
-
-  /* keep the whole conversation inside the screen and let the caption wrap */
-  .chatflow { width: 90vw; top: 58%; }
-  .flow-q .bub.in,
-  .flow-a .ch-out,
-  .flow-a .bub.out { max-width: 100%; }
-  .bub { font-size: 12.5px; }
-  .flow-cap { letter-spacing: 0.12em; font-size: 9px; }
+@media (max-width: 900px) {
+  /* On a narrow phone the big top-right purple radial collapses into a bright
+     blob pinned to the corner (background-attachment: fixed keeps it there on
+     every scroll). Re-centre it as a soft top wash and let it scroll away. */
+  body,
+  [data-theme='dark'] body {
+    background:
+      radial-gradient(140% 70% at 50% -20%, rgba(122, 61, 240, 0.08), transparent 60%),
+      var(--bg);
+    background-attachment: scroll;
+  }
+  /* MOBILE SCROLL PERF: backdrop-filter (blur) on always-on-screen elements
+     re-blurs everything behind them on every scroll frame — the real cause of
+     the scroll stutter on phones. Kill it on the sticky header and the fixed CTA
+     and fall back to a near-opaque background. */
+  .site-head {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: color-mix(in srgb, var(--bg) 94%, transparent);
+  }
+  .cta-float {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .hero { padding-top: clamp(12px, 3vw, 28px); padding-bottom: clamp(28px, 5vw, 56px); }
+  .hero .wrap { grid-template-columns: 1fr; gap: 20px; }
+  /* grid items default to min-width:auto and won't shrink below their content,
+     which forced the 1fr track wider than a narrow phone → the headline, sub and
+     chat card spilled off the right edge. Let every hero grid child shrink. */
+  .hero .wrap > * { min-width: 0; }
+  /* tighter headline on phones so the copy block is short and the live chat
+     (the proof) rides up toward the fold */
+  .hero h1 { font-size: clamp(32px, 8.4vw, 46px); }
+  /* right-align the hero copy on phones (clears the agent in the top-left) */
+  .hero .copy { order: 1; text-align: right; }
+  .hero .copy .eyebrow { justify-content: flex-end; }
+  .hero .copy .trust { justify-content: flex-end; margin-top: 14px; }
+  .hero h1 { margin-top: 0; margin-left: auto; }
+  /* width tuned so the subtext lands on exactly two lines, right-aligned */
+  .hero .sub { margin-top: 10px; margin-left: auto; max-width: 30ch; }
+  /* the agent sits in the top-left corner of the hero, bleeding off the edge,
+     behind the copy so the headline still reads */
+  .hero-person {
+    left: -4%;
+    top: 0;
+    bottom: auto;
+    height: min(42vh, 320px);
+    z-index: 0;
+  }
+  .hero .copy { position: relative; z-index: 1; }
+  .chat { justify-self: stretch; max-width: 460px; margin-inline: auto; order: 2; position: relative; z-index: 2; }
+  /* narrower bubbles wrap to more lines on phone → fixed (not min-) height so
+     the card stays a constant size through the typing loop (no page jump up/down).
+     344px = measured worst-case content (question + reply + caption across all
+     three languages ≈ 331px) plus a small buffer — trims the dead space that the
+     old 384px left below the chat on a phone without ever clipping a message. */
+  /* shorter than the desktop body — the fake composer bar below now anchors the
+     card's bottom, so messages flow top-down under the header like a real
+     WhatsApp thread. 344px holds the worst-case content (~331px) without clipping. */
+  .chat-body { height: 344px; }
+  .hero .copy { order: 1; }
+  .steps { grid-template-columns: 1fr; gap: 8px; }
+  .step .rule { display: none; }
+  .step { padding-block: 20px; border-bottom: 1px solid var(--line); }
+  .langs { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(2, 1fr); gap: 32px 24px; }
+  /* 2-col stacking breaks the single-row dividers — drop them on mobile */
+  .stat-cell { padding-left: 0; }
+  .stat-cell + .stat-cell::before { display: none; }
+  /* keep the full framed flow like desktop — the frames around each card are
+     what make the line read as one continuous, smooth journey (hiding them left
+     only disconnected curves in the gaps). Drop just the per-segment glow filter,
+     since repainting that drop-shadow each scroll frame is what stutters on phones. */
+  .flow-draw { filter: none; }
+  .flow-draw--connector { stroke-width: 2.5; stroke-opacity: 0.9; }
+  /* the lead orb is repositioned every scroll frame; its two drop-shadow filters
+     + two infinite scale animations make that move a heavy repaint on phones.
+     Strip them so the mark rides the line cheaply (it still reads as a glowing
+     waypoint via the soft ::before/::after halo). */
+  .lead-orb img { filter: none; animation: none; }
+  .lead-orb::after { animation: none; opacity: 0.7; }
+  /* a lit card animates a 70px-blur shadow over 0.55s on every threshold cross —
+     several of those during a fast scroll thrash paint. Use a light, instant lit
+     state on phones. */
+  .flow .chat, .flow .sheet, .flow .cal, .flow .dash { transition: none; }
+  .flow .lead-lit {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--accent) 26%, transparent),
+      var(--shadow-lg);
+  }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .hud.scroll-hint i { animation: none; }
+@media (max-width: 520px) {
+  body { font-size: 16px; }
+  .site-head .wrap { height: 64px; }
+  /* keep "Logic Loving Mind" on one line; header holds just brand + toggle */
+  .brand .name { white-space: nowrap; font-size: 17px; }
+  .head-actions { gap: 8px; }
+  /* the header CTA collapsed to a cut-off glossy ball on phones — hide it here
+     and show the page-level floating pill (.cta-float) instead */
+  .head-actions .btn-sm { display: none; }
+  .cta-float {
+    display: inline-flex;
+    position: fixed;
+    right: 16px;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    z-index: 60;
+    height: 50px;
+    padding: 0 24px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  /* fades out once the final CTA section is reached so the page never shows two
+     Book-a-demo buttons at once */
+  .cta-float--gone {
+    opacity: 0;
+    transform: translateY(120%);
+    pointer-events: none;
+  }
+  .hero .cta-row { flex-wrap: wrap; }
+  .cta-row .btn { flex: 1 1 auto; justify-content: center; }
+  /* stack the footer into a clean centered column instead of cramming the
+     brand + email onto one row */
+  .site-foot .wrap {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+  }
+  .stats { grid-template-columns: 1fr 1fr; }
+  /* declutter: tighter rhythm and shorter measure so text blocks don't sprawl */
+  .hero .sub { font-size: 16.5px; }
+  .sec-head--center .lead { font-size: 16px; max-width: 30ch; }
+  /* generous air between stages so each clean card breathes on its own screen */
+  .pipeline-flow { gap: 76px; }
+  .stage { gap: 22px; }
 }
