@@ -1,9 +1,25 @@
 'use client';
 
+import { useEffect } from 'react';
+
 // Reads/writes the theme straight off <html data-theme> so there's no React
 // state to mismatch during hydration — the inline script in layout sets the
 // initial value before paint. Icons are swapped purely by CSS.
 export default function ThemeToggle() {
+  // follow the OS theme live: if the system flips while the tab is open, match
+  // it and forget any manual toggle so system stays the source of truth.
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = (e: MediaQueryListEvent) => {
+      document.documentElement.dataset.theme = e.matches ? 'dark' : 'light';
+      try {
+        localStorage.removeItem('theme');
+      } catch {}
+    };
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
   const toggle = () => {
     const cur = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
     const next = cur === 'dark' ? 'light' : 'dark';
